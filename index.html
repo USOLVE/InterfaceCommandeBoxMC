@@ -169,6 +169,118 @@
     .log-err   { color: #f44336; }
     .log-info  { color: #4a9eff; }
     .log-send  { color: #aaa; }
+
+    /* --- Section état sous-systèmes --- */
+    #status-section {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #status-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ccc;
+      user-select: none;
+      cursor: default;
+    }
+
+    #refresh-btn {
+      width: 100%;
+      padding: 14px;
+      background: #1e2a1e;
+      border: 1px solid #2e5c2e;
+      border-radius: 10px;
+      color: #7ddf7d;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #refresh-btn:hover:not(:disabled) { background: #243024; }
+    #refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #voyants-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .voyant-card {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .voyant-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #444;
+      transition: background 0.3s;
+    }
+    .voyant-dot.online    { background: #4caf50; box-shadow: 0 0 6px #4caf5088; }
+    .voyant-dot.probable  { background: #ff9800; box-shadow: 0 0 6px #ff980088; }
+    .voyant-dot.offline   { background: #f44336; box-shadow: 0 0 6px #f4433688; }
+    .voyant-dot.checking  { background: #555; animation: blink 0.8s ease-in-out infinite; }
+
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+    .voyant-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .voyant-name { font-size: 13px; font-weight: 600; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .voyant-time { font-size: 10px; color: #555; }
+
+    /* Légende */
+    #status-legend {
+      font-size: 11px;
+      color: #555;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Panneau config URLs caché */
+    #url-config-panel {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      background: #141414;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    #url-config-panel.visible { display: flex; }
+    .url-config-row { display: flex; flex-direction: column; gap: 3px; }
+    .url-config-row label { font-size: 11px; color: #888; }
+    .url-config-row input {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #ccc;
+      font-size: 12px;
+      padding: 7px 10px;
+      width: 100%;
+      outline: none;
+    }
+    .url-config-row input:focus { border-color: #4a9eff; }
+    #url-config-save {
+      align-self: flex-end;
+      background: #1a3a5a;
+      border: none;
+      border-radius: 6px;
+      color: #7ab8ff;
+      font-size: 13px;
+      padding: 8px 18px;
+      cursor: pointer;
+    }
+    #url-config-save:hover { background: #1e4a72; }
   </style>
 </head>
 <body>
@@ -209,6 +321,40 @@
       <span class="btn-label">💬 Verrou Phrase</span>
       <div class="spinner"></div>
     </button>
+  </div>
+
+  <!-- État des sous-systèmes -->
+  <div id="status-section">
+    <div id="status-title" title="Cliquer 3x pour configurer les URLs">État des sous-systèmes</div>
+
+    <button id="refresh-btn" onclick="refreshAll()">⚡ Rafraîchir</button>
+
+    <div id="voyants-grid">
+      <div class="voyant-card" id="card-0"><div class="voyant-dot checking" id="dot-0"></div><div class="voyant-info"><span class="voyant-name" id="name-0">ESP RFID</span><span class="voyant-time" id="time-0">—</span></div></div>
+      <div class="voyant-card" id="card-1"><div class="voyant-dot checking" id="dot-1"></div><div class="voyant-info"><span class="voyant-name" id="name-1">ESP Général</span><span class="voyant-time" id="time-1">—</span></div></div>
+      <div class="voyant-card" id="card-2"><div class="voyant-dot checking" id="dot-2"></div><div class="voyant-info"><span class="voyant-name" id="name-2">ESP Knock</span><span class="voyant-time" id="time-2">—</span></div></div>
+      <div class="voyant-card" id="card-3"><div class="voyant-dot checking" id="dot-3"></div><div class="voyant-info"><span class="voyant-name" id="name-3">ESP LED Solvium</span><span class="voyant-time" id="time-3">—</span></div></div>
+      <div class="voyant-card" id="card-4"><div class="voyant-dot checking" id="dot-4"></div><div class="voyant-info"><span class="voyant-name" id="name-4">IA Marie Curie</span><span class="voyant-time" id="time-4">—</span></div></div>
+      <div class="voyant-card" id="card-5"><div class="voyant-dot checking" id="dot-5"></div><div class="voyant-info"><span class="voyant-name" id="name-5">Internet</span><span class="voyant-time" id="time-5">—</span></div></div>
+    </div>
+
+    <div id="status-legend">
+      <span>🟢 En ligne</span>
+      <span>🟠 Probablement en ligne</span>
+      <span>🔴 Hors ligne</span>
+      <span>⚪ Vérification...</span>
+    </div>
+
+    <!-- Panneau config URLs (triple-clic sur le titre) -->
+    <div id="url-config-panel">
+      <div class="url-config-row"><label>ESP RFID</label><input id="url-0" type="url" /></div>
+      <div class="url-config-row"><label>ESP Général</label><input id="url-1" type="url" /></div>
+      <div class="url-config-row"><label>ESP Knock</label><input id="url-2" type="url" /></div>
+      <div class="url-config-row"><label>ESP LED Solvium</label><input id="url-3" type="url" /></div>
+      <div class="url-config-row"><label>IA Marie Curie</label><input id="url-4" type="url" /></div>
+      <div class="url-config-row"><label>Internet</label><input id="url-5" type="url" /></div>
+      <button id="url-config-save" onclick="saveURLConfig()">Enregistrer</button>
+    </div>
   </div>
 
   <!-- Log -->
@@ -253,6 +399,113 @@
     logEl.innerHTML = '';
   }
 
+  // =============================================
+  // --- État des sous-systèmes ---
+  // =============================================
+
+  const DEFAULT_SYSTEMS = [
+    { name: 'ESP RFID',        url: 'http://192.168.137.102/state' },
+    { name: 'ESP Général',     url: 'http://192.168.137.101/state' },
+    { name: 'ESP Knock',       url: 'http://192.168.137.103/state' },
+    { name: 'ESP LED Solvium', url: 'http://192.168.137.104/state' },
+    { name: 'IA Marie Curie',  url: 'http://localhost:5000/api'    },
+    { name: 'Internet',        url: 'https://www.google.com/'      },
+  ];
+
+  const URL_STORAGE_KEY = 'subsystems_urls';
+
+  function getSystems() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(URL_STORAGE_KEY));
+      if (Array.isArray(saved) && saved.length === DEFAULT_SYSTEMS.length) return saved;
+    } catch {}
+    return DEFAULT_SYSTEMS.map(s => ({ ...s }));
+  }
+
+  function now8() { return new Date().toTimeString().slice(0, 8); }
+
+  function setDot(i, state) {
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'voyant-dot ' + state;
+  }
+
+  function setTime(i, text) {
+    document.getElementById('time-' + i).textContent = text;
+  }
+
+  async function pingSystem(i, sys) {
+    setDot(i, 'checking');
+    const isHTTPS = sys.url.startsWith('https://');
+    try {
+      if (isHTTPS) {
+        const res = await fetch(sys.url, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
+        // no-cors sur https renvoie opaque mais pas d'exception = en ligne
+        setDot(i, 'online');
+      } else {
+        // HTTP depuis HTTPS → no-cors obligatoire ; pas d'exception = probablement en ligne
+        await fetch(sys.url, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
+        setDot(i, 'probable');
+      }
+    } catch {
+      setDot(i, 'offline');
+    }
+    setTime(i, now8());
+  }
+
+  let isRefreshing = false;
+
+  async function refreshAll() {
+    if (isRefreshing) return;
+    isRefreshing = true;
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = 'Vérification...';
+
+    const systems = getSystems();
+    await Promise.all(systems.map((sys, i) => pingSystem(i, sys)));
+
+    btn.disabled = false;
+    btn.textContent = '⚡ Rafraîchir';
+    isRefreshing = false;
+  }
+
+  // Polling automatique toutes les 5 secondes
+  refreshAll();
+  setInterval(refreshAll, 5000);
+
+  // --- Triple-clic sur le titre pour ouvrir le panneau config ---
+  let titleClickCount = 0;
+  let titleClickTimer = null;
+  document.getElementById('status-title').addEventListener('click', () => {
+    titleClickCount++;
+    clearTimeout(titleClickTimer);
+    titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 600);
+    if (titleClickCount >= 3) {
+      titleClickCount = 0;
+      openURLConfig();
+    }
+  });
+
+  function openURLConfig() {
+    const systems = getSystems();
+    systems.forEach((sys, i) => {
+      document.getElementById('url-' + i).value = sys.url;
+    });
+    document.getElementById('url-config-panel').classList.toggle('visible');
+  }
+
+  function saveURLConfig() {
+    const systems = getSystems();
+    systems.forEach((sys, i) => {
+      const val = document.getElementById('url-' + i).value.trim();
+      if (val) sys.url = val;
+    });
+    localStorage.setItem(URL_STORAGE_KEY, JSON.stringify(systems));
+    document.getElementById('url-config-panel').classList.remove('visible');
+    refreshAll();
+  }
+
+  // =============================================
   // --- Impulsion ---
   async function sendImpulse(verrouName, btn) {
     const ip = getIP();
