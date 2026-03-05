@@ -397,7 +397,7 @@
   async function pingSystem(i, sys) {
     setDot(i, 'checking');
     try {
-      await fetch(sys.url, { method: 'GET', cache: 'no-store' });
+      await fetch(sys.url, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
       setDot(i, 'online');
     } catch {
       setDot(i, 'offline');
