@@ -19,29 +19,6 @@
       gap: 16px;
     }
 
-    /* --- Bandeau avertissement mixed content --- */
-    #warning-banner {
-      width: 100%;
-      max-width: 500px;
-      background: #2a1a00;
-      border: 1px solid #ff9800;
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #ffcc80;
-    }
-    #warning-banner strong { color: #ff9800; display: block; margin-bottom: 6px; font-size: 14px; }
-    #warning-banner ol { padding-left: 18px; margin-top: 6px; }
-    #warning-banner li { margin-bottom: 4px; }
-    #warning-banner code {
-      background: #3a2800;
-      padding: 1px 5px;
-      border-radius: 4px;
-      font-size: 12px;
-      word-break: break-all;
-    }
-
     /* --- Titre --- */
     h1 {
       font-size: 20px;
@@ -226,9 +203,8 @@
       background: #444;
       transition: background 0.3s;
     }
-    .voyant-dot.online    { background: #4caf50; box-shadow: 0 0 6px #4caf5088; }
-    .voyant-dot.probable  { background: #ff9800; box-shadow: 0 0 6px #ff980088; }
-    .voyant-dot.offline   { background: #f44336; box-shadow: 0 0 6px #f4433688; }
+    .voyant-dot.online  { background: #4caf50; box-shadow: 0 0 6px #4caf5088; }
+    .voyant-dot.offline { background: #f44336; box-shadow: 0 0 6px #f4433688; }
     .voyant-dot.checking  { background: #555; animation: blink 0.8s ease-in-out infinite; }
 
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
@@ -285,20 +261,6 @@
 </head>
 <body>
 
-  <!-- Bandeau mixed content -->
-  <div id="warning-banner">
-    <strong>⚠️ Contenu mixte HTTPS / HTTP</strong>
-    Cette page est servie en <strong>HTTPS</strong> mais l'ESP32 répond en <strong>HTTP</strong>.
-    Le navigateur bloque ces requêtes par défaut.<br><br>
-    <strong>Sur Chrome mobile :</strong>
-    <ol>
-      <li>Tape <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code> dans la barre d'adresse.</li>
-      <li>Ajoute <code>http://&lt;IP_ESP32&gt;</code> dans le champ.</li>
-      <li>Redémarre Chrome et recharge cette page.</li>
-    </ol>
-    <br>Ou utilise Chrome sur PC → icône cadenas → <em>Paramètres du site</em> → autoriser le contenu non sécurisé.
-  </div>
-
   <h1>Box Marie Curie — Commande Verrous</h1>
 
   <!-- Config IP -->
@@ -340,7 +302,6 @@
 
     <div id="status-legend">
       <span>🟢 En ligne</span>
-      <span>🟠 Probablement en ligne</span>
       <span>🔴 Hors ligne</span>
       <span>⚪ Vérification...</span>
     </div>
@@ -435,17 +396,9 @@
 
   async function pingSystem(i, sys) {
     setDot(i, 'checking');
-    const isHTTPS = sys.url.startsWith('https://');
     try {
-      if (isHTTPS) {
-        const res = await fetch(sys.url, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
-        // no-cors sur https renvoie opaque mais pas d'exception = en ligne
-        setDot(i, 'online');
-      } else {
-        // HTTP depuis HTTPS → no-cors obligatoire ; pas d'exception = probablement en ligne
-        await fetch(sys.url, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
-        setDot(i, 'probable');
-      }
+      await fetch(sys.url, { method: 'GET', cache: 'no-store' });
+      setDot(i, 'online');
     } catch {
       setDot(i, 'offline');
     }
